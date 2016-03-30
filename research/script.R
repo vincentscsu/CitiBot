@@ -96,27 +96,28 @@ write.csv(train, 'train.csv')
 
 # test on Jan & Feb in 2016 
 test = rbind(jan16New, feb16New)
+# remove new stations not in training set
+test = test[test$stationID %in% unique(train$stationID),]
 head(test)
 write.csv(test, 'test.csv')
 
 ######################### Model to Predict daily demand ##############################
-library(randomForest)
-library(gbm)
 library(Metrics) # RMSLE - penalize under-predicted more than over prediction
 
 # baseline RMSE
-# sqrt(mean((mean(train$visited) - test$visited)^2))
+sqrt(mean((mean(train$visited) - test$visited)^2))
 
 # regression tree
-library(rpart)
-rpartModel = rpart(visited ~ hour + dayOfWeek + holiday + season + stationID + max + min + rain + snow, data=train, method = 'anova')
+
+rpartModel = rpart(visited ~ dayOfWeek + holiday + season + stationID + max + min + rain + snow, data=train, method = 'anova')
 summary(rpartModel)
 
-predRpart = predict(rpartModel, newdata=test)
-rmsle(test$visited, predRpart)
-sqrt(mean((test$visited - predRpart)^2))
+pred = predict(rpartModel, newdata=test)
+rmsle(test$visited, pred)
+sqrt(mean((test$visited - pred)^2))
 
 # random forest regression
+# library(randomForest)
 # make sure train/test levels are the same
 # rfModel = randomForest(visited ~ dayOfWeek + hour + longitude, data=train)
 # predRf = predict(rfModel, newdata=test)
@@ -124,7 +125,8 @@ sqrt(mean((test$visited - predRpart)^2))
 # RF cannot handle more than 54 levels
 
 # gradient boosted model (GBM)
-# gbmModel = gbm(visited ~ hour + dayOfWeek + holiday + season + stationID + max + min + rain + snow, data=train, distribution= "gaussian ",n.trees=100, interaction.depth=3)
+# library(gbm)
+# gbmModel = gbm(visited ~ dayOfWeek + holiday + season + stationID + max + min + rain + snow, data=train, distribution= "gaussian ",n.trees=100, interaction.depth=3)
 # summary(gbmModel)
 # 
 # plot(gbmModel, i='dayOfWeek')
@@ -134,4 +136,38 @@ sqrt(mean((test$visited - predRpart)^2))
 # mean((test$visited - predGbm)^2)
 
 # predict demand for single station by day
-# station 521
+
+# get average RMSLE for all stations in testset
+library(scales)
+numStationsTest = length(unique(test$stationID))
+pred = c(0, 0)
+count = 1
+for (i in unique(test$stationID)) {
+  print(percent(count/numStationsTest))
+  trainSingle = train[train$stationID == i,]
+  testSingle = test[test$stationID == i,]
+  
+  levels(testSingle$dayOfWeek) = levels(trainSingle$dayOfWeek)
+  levels(testSingle$holiday) = levels(trainSingle$holiday)
+  levels(testSingle$season) = levels(trainSingle$season)
+  
+  rfModel = randomForest(visited ~ dayOfWeek + holiday + season + max + min + rain + snow, data=trainSingle)
+  rpart(visited ~ dayOfWeek + holiday + season + max + min + rain + snow, data=trainSingle, method = 'anova')
+  # gbmModel = gbm(visited ~ dayOfWeek + holiday + season + max + min + rain + snow, data=trainSingle, distribution = 'gaussian', n.trees = 1000, interaction.depth = 1)
+  
+  predRf = predict(rfModel, newdata = testSingle)
+  predRpart = predict(rpartModel, newdata = testSingle)
+  # predGbm = predict(gbmModel, newdata = testSingle, n.trees=2000)  
+  
+  rmsleRf = rmsle(testSingle$visited, predRf)
+  rmsleRpart = rmsle(testSingle$visited, predRpart)
+  # rmsleGbm = rmsle(testSingle$visited, predGbm)
+  
+  pred = pred + c(rmsleRf, rmsleRpart) #, rmsleGbm)
+  count = count + 1
+}
+
+pred = pred / numStationsTest
+pred
+
+# random forest wins

@@ -51,7 +51,7 @@ convert = function(data) {
   data$dayOfWeek = as.factor(data$dayOfWeek)
   data$holiday = as.factor(data$holiday)
   data$season = as.factor(data$season)
-  data$stationID = as.character(data$stationID)
+  data$stationID = as.factor(data$stationID)
   data
 }
 
