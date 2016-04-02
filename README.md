@@ -14,11 +14,15 @@ In an on-demand marketplace such as AWS, Uber, GrubHub, etc., there are typicall
 * service provider - bike & staion mainteance companies
 * resourced being consumed - bike & station usage
 
+Visualize Station Checkins with CartoDB
+---------------------------------
+[![img](graphs/cartoFeb)](https://violinbeats.cartodb.com/viz/d387b8fe-eead-11e5-a8f9-0e5db1731f59/public_map)
+
 Graphs
 -------
 ![img](graphs/avgDayVisits.png)
-![img](graphs/avgTempVisits.png)
 ![img](graphs/monthVisits.png)
+![img](graphs/tempVisits.png)
+![img](graphs/avgTempVisits.png)
 ![img](graphs/rainVisits.png)
 ![img](graphs/snowVisits.png)
-![img](graphs/tempVisits.png)
