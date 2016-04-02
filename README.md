@@ -16,7 +16,7 @@ In an on-demand marketplace such as AWS, Uber, GrubHub, etc., there are typicall
 
 Visualize Station Visits with CartoDB
 ---------------------------------
-[![img](graphs/cartoFeb)](https://violinbeats.cartodb.com/viz/d387b8fe-eead-11e5-a8f9-0e5db1731f59/public_map)
+[![img](graphs/cartoFeb.png)](https://violinbeats.cartodb.com/viz/d387b8fe-eead-11e5-a8f9-0e5db1731f59/public_map)
 
 Graphs
 -------
