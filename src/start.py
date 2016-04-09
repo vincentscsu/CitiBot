@@ -131,7 +131,27 @@ def main():
 
 		print('\nActual visits of each station today: ')
 		print(actualVisits)
+		
+		# check service request status		
+		for station in stations:			
+			if station.waiting:
+				# try again if provider's inventory was full yesterday
+				print("Request service again for station", Station.stationDict[station.id])
+				station.requestService()
+			elif station.inService == 0:
+				print("\nStation Maintenance Info:")
+				print("------------------------------------")
+				if station.pendingDays != 0: # being serviced, check days left
+					print("Station", Station.stationDict[station.id], "being serviced:", station.pendingDays, "days left.")
+					station.pendingDays -= 1
+				else: # back to operation
+					station.usage = 0
+					station.inService = 1
+					Provider._inventory += 1
+					print("Station", Station.stationDict[station.id], "back in operation tomorrow.")
+
 		input("\nPress Enter to continue...\n")
+
 
 def getDayOfWeek(tomorrow):
 	"""Get next day of week"""

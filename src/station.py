@@ -16,19 +16,20 @@ class Station:
 	_budget = 10000
 	_numOperating = 3
 
-	provider = Provider()
 	stationDict = {	387: 1, 
 					521: 2,
 					293: 3,
 					127: 4,
 					83:  5 }
 
-	def __init__(self, id, name="", latitude=0, longitude=0, inService=1, usage=0, maxUsage=1000):
+	def __init__(self, id, name="", latitude=0, longitude=0, inService=1, pendingDays=0, waiting=0, usage=0, maxUsage=1000):
 		self.id = id
 		self.name = name
 		self.latitude = latitude
 		self.longitude = longitude
 		self.inService = inService
+		self.pendingDays = pendingDays
+		self.waiting = waiting
 		self.usage = usage
 		self.maxUsage = maxUsage
 
@@ -47,19 +48,33 @@ class Station:
 		if self.usage > self.maxUsage:
 			self.inService = 0
 
+		# request service when usage is above half of max
 		if self.usage > self.maxUsage/2:
-			# TODO: choose which level is best
-			level = 1
-			self.requestService(Station.provider, level)
+			# decide which service to request
+			self.requestService()
 
-	def requestService(self, provider, level):
+	def requestService(self):
+		"""request service when usage > 1/2 of maximum usage"""
+		# select the best level service
+		level = self.selectLevel()
+		print('Requesting service level', level, 'for station', Station.stationDict[self.id])
+
 		if Provider._inventory == 0:
-			print('Provider has no available units.')
+			# TODO what happens when no inventory available? Try again next day, keep trying until available
+			self.waiting = 1
+			print('Provider has no available units. Try requesting again tomorrow.')
 		else:
-			print('*Requesting service level', level, 'for station', Station.stationDict[self.id])
+			print('Successfully requested service level', level, 'for station', Station.stationDict[self.id])
 			Provider._inventory -= 1
-			price = provider.priceList[level]
+			price = Provider._levelList[level][0]
+			days = Provider._levelList[level][1]
 			Provider._profit += price
 			Station._budget -= price
+			# station being serviced is put out of operation
 			self.inService = 0
-			
+			self.pendingDays = days
+	
+	def selectLevel(self):
+		"""select the best level to request to maximize station availability (and provider profit?)"""
+		# TODO
+		return 1
