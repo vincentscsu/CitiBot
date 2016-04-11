@@ -34,7 +34,7 @@ def main():
 	print('------------------------------------')
 	print('Available Budget:', Station._budget)
 	percentage = sum([s.inService for s in stations]) / len(stations)
-	print('% stations in service:', "{0:.0f}%".format(percentage * 100))
+	print('% stations in service:', "{0:.0%}".format(percentage))
 
 	print('\nProvider Info:')
 	print('------------------------------------')
@@ -94,7 +94,7 @@ def main():
 		print('------------------------------------')
 		print('Available Budget:', station._budget)
 		percentage = sum([s.inService for s in stations]) / len(stations)
-		print('% stations in service:', "{0:.0f}%".format(percentage * 100))
+		print('% stations in service:', "{:.0%}".format(percentage))
 
 		print('\nProvider Info:')
 		print('------------------------------------')
