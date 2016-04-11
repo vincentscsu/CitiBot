@@ -22,7 +22,7 @@ class Station:
 					127: 4,
 					83:  5 }
 
-	def __init__(self, id, name="", latitude=0, longitude=0, inService=1, pendingDays=0, waiting=0, usage=0, maxUsage=1000):
+	def __init__(self, id, name="", latitude=0, longitude=0, inService=1, pendingDays=0, waiting=0, usage=0, maxUsage=500):
 		self.id = id
 		self.name = name
 		self.latitude = latitude
@@ -45,13 +45,12 @@ class Station:
 		
 		self.usage += num
 
-		if self.usage > self.maxUsage:
-			self.inService = 0
+		# if self.usage > self.maxUsage:
+		# 	self.inService = 0
 
-		# request service when usage is above half of max
-		if self.usage > self.maxUsage/2:
-			# decide which service to request
-			self.requestService()
+		# # request service when usage is above half of max
+		# if self.usage > self.maxUsage/2:
+		# 	self.requestService()
 
 	def requestService(self):
 		"""request service when usage > 1/2 of maximum usage"""
@@ -62,9 +61,10 @@ class Station:
 		if Provider._inventory == 0:
 			# TODO what happens when no inventory available? Try again next day, keep trying until available
 			self.waiting = 1
-			print('Provider has no available units. Try requesting again tomorrow.')
+			print('Provider has no available units. Try again tomorrow.')
 		else:
 			print('Successfully requested service level', level, 'for station', Station.stationDict[self.id])
+			self.waiting = 0
 			Provider._inventory -= 1
 			price = Provider._levelList[level][0]
 			days = Provider._levelList[level][1]

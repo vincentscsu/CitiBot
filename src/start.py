@@ -77,9 +77,13 @@ def main():
 		# generate station visits for the day
 		actualVisits = []
 		for station, demand in zip(stations, demands):
-			actualVisit = int(max(random.uniform(demand*0.8,demand*1.2), 0))
-			station.visit(actualVisit)
-			actualVisits.append(actualVisit)
+			if station.inService == 0:
+				# cannot visit the station if it's not in operation
+				actualVisits.append(0)
+			else:
+				actualVisit = int(max(random.uniform(demand*0.8,demand*1.2), 0))
+				station.visit(actualVisit)
+				actualVisits.append(actualVisit)
 		
 		print('############################################################################')
 		print('Current station usage:')
@@ -101,8 +105,6 @@ def main():
 		print('Available Inventory:', Provider._inventory)
 		print('Profit:', Provider._profit)
 		
-		demandsNext.popleft()
-		
 		# update day of week and reset when beyond Sunday
 		nextDay += 1
 		if nextDay == 8:
@@ -111,10 +113,14 @@ def main():
 		# get next day's weather features
 		high, low, rain, snow = genWeather()
 
-		# predict demand for each station for the next day
+		# predict demand for each station for the next day		
 		features = []
 		demands = []
+		currentUsage = [] # create a current usage list to compare with future demand and decided if need service in advance
 		for station, index in zip(stations, indices):
+			# create current usage list
+			currentUsage.append(staion.usage)
+
 			# generate feature vector for prediction model
 			features.append(genFeature(nextDay, station.id, high, low, rain, snow))
 			pred = models[index].predict(features[-1])
@@ -122,25 +128,25 @@ def main():
 				demands.append(0)
 			else:
 				demands.append(int(pred[0]))
-		
+		# get rid of prediction in the past and add a new one in the rolling prediction
+		demandsNext.popleft()
 		demandsNext.append(demands)
 
 		print('\nDemand prediction for next 7 days:')
 		print('------------------------------------')
-		print(demandsNext)		
+		print(demandsNext)
 
 		print('\nActual visits of each station today: ')
 		print(actualVisits)
 		
-		# check service request status		
-		for station in stations:			
+		# check service request status	
+		print("\nStation Maintenance Info:")
+		print("------------------------------------")	
+		for station in stations:
 			if station.waiting:
 				# try again if provider's inventory was full yesterday
-				print("Request service again for station", Station.stationDict[station.id])
 				station.requestService()
 			elif station.inService == 0:
-				print("\nStation Maintenance Info:")
-				print("------------------------------------")
 				if station.pendingDays != 0: # being serviced, check days left
 					print("Station", Station.stationDict[station.id], "being serviced:", station.pendingDays, "days left.")
 					station.pendingDays -= 1
@@ -149,9 +155,11 @@ def main():
 					station.inService = 1
 					Provider._inventory += 1
 					print("Station", Station.stationDict[station.id], "back in operation tomorrow.")
+			elif station.usage > station.maxUsage / 2:
+				# request service when usage is above half of max
+				station.requestService()
 
 		input("\nPress Enter to continue...\n")
-
 
 def getDayOfWeek(tomorrow):
 	"""Get next day of week"""
@@ -166,6 +174,7 @@ def getDayOfWeek(tomorrow):
 	return days[tomorrow]
 
 def genWeather():
+	"""generate weather data for one winter day"""
 	maxTemp = random.uniform(20,30)
 	minTemp = maxTemp - random.uniform(5,10)
 	rain = 0
