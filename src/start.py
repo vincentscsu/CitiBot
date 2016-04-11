@@ -99,16 +99,23 @@ def main():
 		print('Available Budget:', station._budget)
 		percentage = sum([s.inService for s in stations]) / len(stations)
 		print('% stations in service:', "{:.0%}".format(percentage))
+		Station._score += percentage
 
-		print('\nProvider Info:')
-		print('------------------------------------')
-		print('Available Inventory:', Provider._inventory)
-		print('Profit:', Provider._profit)
-		
 		# update day of week and reset when beyond Sunday
 		nextDay += 1
 		if nextDay == 8:
 			nextDay = 1
+			Station._budget = 1000 # renew weekly budget
+
+			# print objective: avg availability for the past week
+			avgScore = Station._score / 7
+			print('Station 7-day average availability:', "{:.0%}".format(avgScore))
+			Station._score = 0
+
+		print('\nProvider Info:')
+		print('------------------------------------')
+		print('Available Inventory:', Provider._inventory)
+		print('Profit:', Provider._profit)	
 
 		# get next day's weather features
 		high, low, rain, snow = genWeather()
@@ -116,10 +123,10 @@ def main():
 		# predict demand for each station for the next day		
 		features = []
 		demands = []
-		currentUsage = [] # create a current usage list to compare with future demand and decided if need service in advance
+		currentUsage = [] # create a current usage list to compare with future demand and decide service level
 		for station, index in zip(stations, indices):
 			# create current usage list
-			currentUsage.append(staion.usage)
+			currentUsage.append(station.usage)
 
 			# generate feature vector for prediction model
 			features.append(genFeature(nextDay, station.id, high, low, rain, snow))
@@ -155,7 +162,9 @@ def main():
 					station.inService = 1
 					Provider._inventory += 1
 					print("Station", Station.stationDict[station.id], "back in operation tomorrow.")
-			elif station.usage > station.maxUsage / 2:
+			elif station.usage > station.maxUsage: # over used, suspend
+				station.inService = 0
+			elif station.usage > station.maxUsage / 2: # start requesting maintenance when usage greater than half of max
 				# request service when usage is above half of max
 				station.requestService()
 

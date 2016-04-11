@@ -4,8 +4,8 @@ class Station:
 	""" A Citi Bike station that needs maintenace service regularly as usage accumulates.
 
 	Attributes:
-		budget: repair budget for the entire city
-		numOperating: at any given time the minimum number of stations operating cannot fall below this value
+		budget: weekly budget for all the stations
+		score: weekly avg availability
 		id: station id
 		name:
 		latitude: 
@@ -13,8 +13,8 @@ class Station:
 		inService: whether the station is in service or not
 		usage: count of visits accumulated from last service
 	"""
-	_budget = 10000
-	_numOperating = 3
+	_budget = 1000 
+	_score = 0
 
 	stationDict = {	387: 1, 
 					521: 2,
@@ -22,7 +22,7 @@ class Station:
 					127: 4,
 					83:  5 }
 
-	def __init__(self, id, name="", latitude=0, longitude=0, inService=1, pendingDays=0, waiting=0, usage=0, maxUsage=500):
+	def __init__(self, id, name="", latitude=0, longitude=0, inService=1, pendingDays=0, waiting=0, usage=0, maxUsage=100):
 		self.id = id
 		self.name = name
 		self.latitude = latitude
@@ -77,4 +77,4 @@ class Station:
 	def selectLevel(self):
 		"""select the best level to request to maximize station availability (and provider profit?)"""
 		# TODO
-		return 1
+		return 3
