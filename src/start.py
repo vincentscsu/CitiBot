@@ -32,7 +32,7 @@ def main():
 
 	print('\nCiti Bike Info:')
 	print('------------------------------------')
-	print('Available Budget:', Station._budget)
+	print('Available Budget:', Station._budgetLeft)
 	percentage = sum([s.inService for s in stations]) / len(stations)
 	print('% stations in service:', "{0:.0%}".format(percentage))
 
@@ -96,7 +96,7 @@ def main():
 
 		print('\nCiti Bike Info:')
 		print('------------------------------------')
-		print('Available Budget:', station._budget)
+		print('Available Budget:', station._budgetLeft)
 		percentage = sum([s.inService for s in stations]) / len(stations)
 		print('% stations in service:', "{:.0%}".format(percentage))
 		Station._score += percentage
@@ -105,7 +105,7 @@ def main():
 		nextDay += 1
 		if nextDay == 8:
 			nextDay = 1
-			Station._budget = 1000 # renew weekly budget
+			Station._budgetLeft = Station._budget # renew weekly budget
 
 			# print objective: avg availability for the past week
 			avgScore = Station._score / 7
@@ -154,14 +154,14 @@ def main():
 				# try again if provider's inventory was full yesterday
 				station.requestService()
 			elif station.inService == 0:
-				if station.pendingDays != 0: # being serviced, check days left
+				if station.pendingDays != 1: # being serviced, check days left
 					print("Station", Station.stationDict[station.id], "being serviced:", station.pendingDays, "days left.")
 					station.pendingDays -= 1
 				else: # back to operation
 					station.usage = 0
 					station.inService = 1
 					Provider._inventory += 1
-					print("Station", Station.stationDict[station.id], "back in operation tomorrow.")
+					print("Station", Station.stationDict[station.id], "being serviced: 1 day left, back in operation tomorrow.")
 			elif station.usage > station.maxUsage: # over used, suspend
 				station.inService = 0
 			elif station.usage > station.maxUsage / 2: # start requesting maintenance when usage greater than half of max
