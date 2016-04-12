@@ -100,9 +100,9 @@ def main():
 
 		print('\nCiti Bike Info:')
 		print('------------------------------------')
-		print('Available Budget:', station._budgetLeft)
+
 		percentage = sum([s.inService for s in stations]) / len(stations)
-		print('% stations in service:', "{:.0%}".format(percentage))
+
 		Station._score += percentage
 
 		# update day of week and reset when beyond Sunday
@@ -115,6 +115,9 @@ def main():
 			avgScore = Station._score / 7
 			print('Station 7-day average availability:', "{:.0%}".format(avgScore))
 			Station._score = 0
+
+		print('Available Budget:', station._budgetLeft)
+		print('% stations in service:', "{:.0%}".format(percentage))
 
 		print('\nProvider Info:')
 		print('------------------------------------')
@@ -166,10 +169,9 @@ def main():
 				else:
 					mayNeedService.append("Good for now.")
 			print(mayNeedService)
+			# how many? 
 			numNeedService = sum([1 if x != "Good for now." else 0 for x in mayNeedService ])
 			print("Number of stations that might need service:", numNeedService)
-			# how many? 
-
 
 		print('\nActual visits of each station today: ')
 		print('------------------------------------')
@@ -183,16 +185,20 @@ def main():
 				# try again if provider's inventory was full yesterday
 				station.requestService()
 			elif station.inService == 0:
-				if station.pendingDays != 1: # being serviced, check days left
+				if station.pendingDays > 1: # being serviced, check days left
 					print("Station", Station.stationDict[station.id], "being serviced:", station.pendingDays, "days left.")
 					station.pendingDays -= 1
-				else: # back to operation
+				elif station.pendingDays == 1: # back to operation
+					station.pendingDays = 0
 					station.usage = 0
 					station.inService = 1
 					Provider._inventory += 1
 					print("Station", Station.stationDict[station.id], "being serviced: 1 day left, back in operation tomorrow.")
+				else:
+					pass
 			elif station.usage > station.maxUsage: # over used, suspend
 				station.inService = 0
+				station.requestService()
 			elif station.usage > station.maxUsage / 2: # start requesting maintenance when usage greater than half of max
 				# request service when usage is above half of max
 				station.requestService()
