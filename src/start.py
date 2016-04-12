@@ -72,10 +72,45 @@ def main():
 	cumulatedDemand = list(np.array(demandsNext).sum(axis=0))
 	print("Cumulated:", cumulatedDemand)
 
+	print("\nMaintenance prediction for each station next week:")
+	print("------------------------------------")
+	# which station may need service next week 
+	maxUsage = s1.maxUsage # masusage are the same for all stations
+	mayNeedService = []
+	for station, demand in zip(stations, cumulatedDemand):
+		bound = station.usage + demand
+		if bound > maxUsage:
+			mayNeedService.append("Might break down!!")
+		elif bound > maxUsage / 2:
+			mayNeedService.append("May request service.")
+		else:
+			mayNeedService.append("Good for now.")
+	print(mayNeedService)
+	# how many? 
+	numNeedService = sum([1 if x != "Good for now." else 0 for x in mayNeedService ])
+	print("Number of stations that might need service:", numNeedService)
+
+	# objective is to minimize sum of pendingDays
+	# hard coded solution...
+	# this solution maximizes the chance that all stations can be serviced
+	if numNeedService == 5:
+		Station._requestLevels = [1,1,1,1,1]
+	elif numNeedService == 4:
+		Station._requestLevels = [2,2,3,3]
+	elif numNeedService == 3:
+		Station._requestLevels = [2,3,3]
+	elif numNeedService == 2:
+		Station._requestLevels = [3,3]
+	elif numNeedService == 1:
+		Station._requestLevels = [3]
+
 	input("\nPress Enter to continue...\n")
 	# next day to predict is Monday
 	nextDay = 1
 
+
+
+	# TODO above code might be repeated unnecessarily
 	while True:
 
 		# generate station visits for the day
@@ -173,6 +208,22 @@ def main():
 			numNeedService = sum([1 if x != "Good for now." else 0 for x in mayNeedService ])
 			print("Number of stations that might need service:", numNeedService)
 
+			# objective is to minimize sum of pendingDays
+			# hard coded solution...
+			# this solution maximizes the chance that all stations can be serviced
+			if numNeedService == 5:
+				Station._requestLevels = [1,1,1,1,1]
+			elif numNeedService == 4:
+				Station._requestLevels = [2,2,3,3]
+			elif numNeedService == 3:
+				Station._requestLevels = [2,3,3]
+			elif numNeedService == 2:
+				Station._requestLevels = [3,3]
+			elif numNeedService == 1:
+				Station._requestLevels = [3]
+
+
+
 		print('\nActual visits of each station today: ')
 		print('------------------------------------')
 		print(actualVisits)
@@ -183,7 +234,7 @@ def main():
 		for station in stations:
 			if station.waiting:
 				# try again if provider's inventory was full yesterday
-				station.requestService()
+				station.requestService(False)
 			elif station.inService == 0:
 				if station.pendingDays > 1: # being serviced, check days left
 					print("Station", Station.stationDict[station.id], "being serviced:", station.pendingDays, "days left.")
@@ -198,10 +249,10 @@ def main():
 					pass
 			elif station.usage > station.maxUsage: # over used, suspend
 				station.inService = 0
-				station.requestService()
+				station.requestService(False)
 			elif station.usage > station.maxUsage / 2: # start requesting maintenance when usage greater than half of max
 				# request service when usage is above half of max
-				station.requestService()
+				station.requestService(False)
 
 		input("\nPress Enter to continue...\n")
 

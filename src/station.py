@@ -5,6 +5,7 @@ class Station:
 
 	Attributes:
 		budget: weekly budget for all the stations
+		budgetLeft: current available budget
 		score: weekly avg availability
 		requestLevels: optimized request levels for the current week
 		id: station id
@@ -78,7 +79,7 @@ class Station:
 
 		# select the best level service
 		if greedy:
-			# use greedy approach			
+			# use greedy approach
 			if Station._budgetLeft > price3:
 				level = 3
 			elif Station._budgetLeft > price2:
@@ -87,9 +88,12 @@ class Station:
 				level = 1
 
 		else:
-			# optimize weekly budget so that all can be serviced
+			# use as much weekly budget to optimize availability
+			# objective is to minimize sum of pendingDays
 			if Station._requestLevels != []:
 				level = Station._requestLevels.pop()
+			else:
+				level = 1			
 
 		print('Successfully requested service level', level, 'for station', Station.stationDict[self.id])
 		self.waiting = 0
