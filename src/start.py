@@ -2,6 +2,7 @@ from station import Station
 from provider import Provider
 from collections import deque
 from sklearn.externals import joblib
+import numpy as np
 import pandas as pd
 import random
 
@@ -68,6 +69,9 @@ def main():
 		demandsNext.append(demands)
 
 	print(demandsNext)
+	cumulatedDemand = list(np.array(demandsNext).sum(axis=0))
+	print("Cumulated:", cumulatedDemand)
+
 	input("\nPress Enter to continue...\n")
 	# next day to predict is Monday
 	nextDay = 1
@@ -143,7 +147,32 @@ def main():
 		print('------------------------------------')
 		print(demandsNext)
 
+		# cumulated demand for the rest of the week
+		if nextDay == 1:
+			cumulatedDemand = list(np.array(demandsNext).sum(axis=0))
+			print("Cumulated:", cumulatedDemand)
+		
+			print("\nMaintenance prediction for each station next week:")
+			print("------------------------------------")
+			# which station may need service next week 
+			maxUsage = s1.maxUsage # masusage are the same for all stations
+			mayNeedService = []
+			for station, demand in zip(stations, cumulatedDemand):
+				bound = station.usage + demand
+				if bound > maxUsage:
+					mayNeedService.append("Might break down!!")
+				elif bound > maxUsage / 2:
+					mayNeedService.append("May request service.")
+				else:
+					mayNeedService.append("Good for now.")
+			print(mayNeedService)
+			numNeedService = sum([1 if x != "Good for now." else 0 for x in mayNeedService ])
+			print("Number of stations that might need service:", numNeedService)
+			# how many? 
+
+
 		print('\nActual visits of each station today: ')
+		print('------------------------------------')
 		print(actualVisits)
 		
 		# check service request status	
