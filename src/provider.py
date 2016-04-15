@@ -8,4 +8,4 @@ class Provider:
 	"""
 	_inventory = 3
 	_profit = 0
-	_levelList = {1:(20,3), 2:(30,2), 3:(35,1)}
+	_levelList = {1:(20,3), 2:(30,2), 3:(45,1)}

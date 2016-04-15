@@ -41,6 +41,10 @@ def main():
 	print('------------------------------------')
 	print('Available Inventory:', Provider._inventory)
 	print('Profit:', Provider._profit)
+	# print('Pricing:')
+	# print('Level 1 costs', ''.join(['$',str(Provider._levelList[1][0])]), 'and takes', Provider._levelList[1][1], 'days')
+	# print('Level 2 costs', ''.join(['$',str(Provider._levelList[2][0])]), 'and takes', Provider._levelList[2][1], 'days')
+	# print('Level 3 costs', ''.join(['$',str(Provider._levelList[3][0])]), 'and takes', Provider._levelList[3][1], 'days')
 
 	print('\nDemand prediction for next 7 days:')
 	print('------------------------------------')
@@ -90,25 +94,12 @@ def main():
 	numNeedService = sum([1 if x != "Good for now." else 0 for x in mayNeedService ])
 	print("Number of stations that might need service:", numNeedService)
 
-	# objective is to minimize sum of pendingDays
-	# hard coded solution...
-	# this solution maximizes the chance that all stations can be serviced
-	if numNeedService == 5:
-		Station._requestLevels = [1,1,1,1,1]
-	elif numNeedService == 4:
-		Station._requestLevels = [2,2,3,3]
-	elif numNeedService == 3:
-		Station._requestLevels = [2,3,3]
-	elif numNeedService == 2:
-		Station._requestLevels = [3,3]
-	elif numNeedService == 1:
-		Station._requestLevels = [3]
+	# select levels based on objective: max availability, max profit, ...
+	Station._requestLevels = selectLevels(numNeedService, avail = 0, profit = 1)
 
 	input("\nPress Enter to continue...\n")
 	# next day to predict is Monday
 	nextDay = 1
-
-
 
 	# TODO above code might be repeated unnecessarily
 	while True:
@@ -120,7 +111,7 @@ def main():
 				# cannot visit the station if it's not in operation
 				actualVisits.append(0)
 			else:
-				actualVisit = int(max(random.uniform(demand*0.8,demand*1.2), 0))
+				actualVisit = int(max(random.uniform(demand*0.9,demand*1.1), 0))
 				station.visit(actualVisit)
 				actualVisits.append(actualVisit)
 		
@@ -145,10 +136,12 @@ def main():
 		if nextDay == 8:
 			nextDay = 1
 			Station._budgetLeft = Station._budget # renew weekly budget
+			totalProfit = Provider._profit
+			Provider._profit = 0 # reset weekly budget
 
 			# print objective: avg availability for the past week
 			avgScore = Station._score / 7
-			print('Station 7-day average availability:', "{:.0%}".format(avgScore))
+			print('Station 7-day average availability:', "{:.0%}".format(avgScore))			
 			Station._score = 0
 
 		print('Available Budget:', station._budgetLeft)
@@ -156,8 +149,14 @@ def main():
 
 		print('\nProvider Info:')
 		print('------------------------------------')
+		if nextDay == 1:
+			print('Weekly profit:', "${0}".format(totalProfit))
 		print('Available Inventory:', Provider._inventory)
 		print('Profit:', Provider._profit)	
+		# print('Pricing:')
+		# print('Level 1 costs', ''.join(['$',str(Provider._levelList[1][0])]), 'and takes', Provider._levelList[1][1], 'days')
+		# print('Level 2 costs', ''.join(['$',str(Provider._levelList[2][0])]), 'and takes', Provider._levelList[2][1], 'days')
+		# print('Level 3 costs', ''.join(['$',str(Provider._levelList[3][0])]), 'and takes', Provider._levelList[3][1], 'days')
 
 		# get next day's weather features
 		high, low, rain, snow = genWeather()
@@ -208,21 +207,8 @@ def main():
 			numNeedService = sum([1 if x != "Good for now." else 0 for x in mayNeedService ])
 			print("Number of stations that might need service:", numNeedService)
 
-			# objective is to minimize sum of pendingDays
-			# hard coded solution...
-			# this solution maximizes the chance that all stations can be serviced
-			if numNeedService == 5:
-				Station._requestLevels = [1,1,1,1,1]
-			elif numNeedService == 4:
-				Station._requestLevels = [2,2,3,3]
-			elif numNeedService == 3:
-				Station._requestLevels = [2,3,3]
-			elif numNeedService == 2:
-				Station._requestLevels = [3,3]
-			elif numNeedService == 1:
-				Station._requestLevels = [3]
-
-
+			# select levels based on objective: max availability, max profit, ...
+			Station._requestLevels = selectLevels(numNeedService, avail = 0, profit = 1)
 
 		print('\nActual visits of each station today: ')
 		print('------------------------------------')
@@ -304,6 +290,42 @@ def genFeature(tomorrow, stationID, high, low, rain, snow):
 
 	# reshape because 1D array only contains one sample
 	return featureVec.reshape(1,-1)
+
+def selectLevels(numNeedService, avail = 0, profit = 0):
+	"""Select best request levels given the objective."""
+	if avail + profit == 0: # if objective is not given by user, maximize availability
+		print("Maximization Objective not selected, default to maximizing availability.")
+		avail = 1
+	if avail == 1:
+		# objective is to minimize sum of pendingDays
+		# hard coded solution...
+		# this solution maximizes the chance that all stations who request would get serviced	
+		if numNeedService == 5:
+			return [2,2,2,2,2]
+		elif numNeedService == 4:
+			return [2,2,3,3]
+		elif numNeedService == 3:
+			return [3,3,3]
+		elif numNeedService == 2:
+			return [3,3]
+		elif numNeedService == 1:
+			return [3]
+
+	elif profit == 1:
+		# objective is to maximize weekly profit
+		# don't have to guarantee every station is serviced anymore, but serves as a tight upper bound
+		if numNeedService == 5:
+			return [2,2,3,3] # [1,1,1,3,3] might also work
+		elif numNeedService == 4:
+			return [2,2,3,3]
+		elif numNeedService == 3:
+			return [3,3,3]
+		elif numNeedService == 2:
+			return [3,3]
+		elif numNeedService == 1:
+			return [3]
+
+	# elif cost == 1:	
 
 if __name__ == '__main__':
 	main()

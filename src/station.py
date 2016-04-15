@@ -18,7 +18,7 @@ class Station:
 		usage: count of visits accumulated from last service
 		maxUsage: once hit this threshold the station turns off
 	"""
-	_budget = 100
+	_budget = 150
 	_budgetLeft = _budget
 	_score = 0
 	_requestLevels = []
