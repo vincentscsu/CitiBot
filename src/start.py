@@ -95,7 +95,7 @@ def main():
 	print("Number of stations that might need service:", numNeedService)
 
 	# select levels based on objective: max availability, max profit, ...
-	Station._requestLevels = selectLevels(numNeedService, avail = 0, profit = 1)
+	Station._requestLevels = selectLevels(numNeedService, avail = 0, profit = 0, cost = 1)
 
 	input("\nPress Enter to continue...\n")
 	# next day to predict is Monday
@@ -208,7 +208,7 @@ def main():
 			print("Number of stations that might need service:", numNeedService)
 
 			# select levels based on objective: max availability, max profit, ...
-			Station._requestLevels = selectLevels(numNeedService, avail = 0, profit = 1)
+			Station._requestLevels = selectLevels(numNeedService, avail = 0, profit = 0, cost = 1)
 
 		print('\nActual visits of each station today: ')
 		print('------------------------------------')
@@ -291,15 +291,16 @@ def genFeature(tomorrow, stationID, high, low, rain, snow):
 	# reshape because 1D array only contains one sample
 	return featureVec.reshape(1,-1)
 
-def selectLevels(numNeedService, avail = 0, profit = 0):
+def selectLevels(numNeedService, avail = 0, profit = 0, cost = 0):
 	"""Select best request levels given the objective."""
-	if avail + profit == 0: # if objective is not given by user, maximize availability
+	if avail + profit + cost == 0: # if objective is not given by user, maximize availability
 		print("Maximization Objective not selected, default to maximizing availability.")
 		avail = 1
 	if avail == 1:
 		# objective is to minimize sum of pendingDays
 		# hard coded solution...
-		# this solution maximizes the chance that all stations who request would get serviced	
+		# this solution maximizes the chance that all stations who request would get serviced,
+		# while minimizing servicing time
 		if numNeedService == 5:
 			return [2,2,2,2,2]
 		elif numNeedService == 4:
@@ -325,7 +326,9 @@ def selectLevels(numNeedService, avail = 0, profit = 0):
 		elif numNeedService == 1:
 			return [3]
 
-	# elif cost == 1:	
+	elif cost == 1:	
+		# objective is to minimize weekly spending on station maintenance
+		return [1,1,1,1,1]
 
 if __name__ == '__main__':
 	main()
