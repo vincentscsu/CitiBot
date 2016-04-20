@@ -1,0 +1,20 @@
+3 scenrios explored:
+
+1. Maximize availability (buyer)
+2. Maximize profit (seller)
+3. Minimize cost (buyer)
+
+Given current usage and predicted demand for the following week, we can estimate which stations might need maintenace in the following week. Based on this information and given budget, we can determine the optimal service levels to request for. In the case where estimation is lower than actual number of stations who request service, current approach would just request level 1 service for them if we have enough budget left.
+
+1. Maximize availability (buyer)
+To maximize station availability, one way is to maximize the chance that all stations who request service gets serviced, and minimize the possible "suspension" days (when stations are out of service). We also estimate the urgency with which the stations might need maintenance next week given how close the sum of their current usage and next week's predicted demand is close to the maximum allowed usage. This piece of information is not yet used in this scenario. However, the maintenance is on a first come first serve basis, so if the more urgent ones do hit high threshold, they will get serviced first. 
+
+Also, in a system where stations start requesting service when their usage is above half, the current level requesting method wants to guarantee that whoever needs service gets the best service we can afford given the estimated number of services we might need to request. This might not necessarily minimize pending days since those who are not too close to being maxed out might be fine for another week or two without maintenance.
+
+2. Maximize profit (seller)
+To maximize profit for the service provider, we essentially want to exhaust the stations' weekly budget as much as possible. This might not mean always requesting the most expensive service. For now, we will go along with the system mechanics in that stations will start requesting service once usage passes 50% threshold, and adjust the request level method to optimize this. 
+
+With this objective, we can see that the strategy diverges when the number of stations that need service within a given period increases above certain threshold (ex. 4 out of 5 stations will need service next week). The reason is, with availability maximization, idealy, you want to guarantee service of every unit. But with maximizing profit, you don't have to. Thus estimated number of statinos who might request service next week serves only as a tight upper bound, but not a goal that we have to reach.
+
+3. Minimize cost (buyer)
+One way to minimize cost is just not buy anything, but then bike stations will soon go out of service. What if we always try requesting the lowest level of service to get by? This approach seems to result in low 7-day average availability for the stations and low weekly profit for the provider. Without combining with another objective, minimizing cost alone doesn't really serve anybody.
